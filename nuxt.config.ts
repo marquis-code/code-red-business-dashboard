@@ -16,14 +16,14 @@ export default defineNuxtConfig({
       enabled: true
     },
     meta: {
-      title: "Buildr",
+      title: "CodeRed | Get started with business tools from CodeRed",
       author: "Marquis",
       mobileAppIOS: false,
       mobileApp: true,
       description:
-        "specialize in software development, product design, and bespoke solutions to help businesses innovate and thrive in the digital age.",
-      theme_color: "#27396B",
-      background_color: "#27396B",
+        "Saving time while saving lives",
+      theme_color: "#CC1100",
+      background_color: "#CC1100",
       display: "standalone",
       start_url: "/",
       nativeUI: true,
