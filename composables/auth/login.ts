@@ -7,7 +7,6 @@ const runtimeData = {
   token: ref(""),
   expiry: ref("")
 };
-const router = useRouter();
 const localstorageData = {
   user: useStorage("user", {} as any),
   token: useStorage("token", ""),
@@ -34,6 +33,7 @@ const loginPayload = ref({
 });
 export const useLogin = () => {
   const loading = ref(false);
+  const router = useRouter();
   const handleLogin = async () => {
     loading.value = true;
     try {

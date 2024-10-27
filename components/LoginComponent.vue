@@ -1,4 +1,4 @@
-<template>
+ <template>
   <main class="w-full">
     <div
       class="z-0 flex h-screen w-full items-center justify-center bg-[#1C1B1F] px-8 py-8 sm:px-12 lg:col-span-7 lg:px-16 lg:py-12 xl:col-span-6">
