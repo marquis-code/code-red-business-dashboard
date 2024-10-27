@@ -62,7 +62,12 @@ export default defineNuxtConfig({
         strategyOptions: { cacheableResponse: { statuses: [0, 200] } },
       },
     ],
-  }
+  },
+  vite: {
+    optimizeDeps: {
+      include: ['fast-deep-equal']
+    }
+  },
   // modules: [
   //   '@nuxtjs/pwa'
   // ],

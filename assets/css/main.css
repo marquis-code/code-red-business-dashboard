@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.bg-white {
+  background-color: white;
+}
+.dark .bg-white {
+  background-color: black;
+}
+
+/* assets/css/main.css */
+.bg-custom {
+  background-color: #f0f0f0; /* Light mode background */
+}
+.dark .bg-custom {
+  background-color: #1a202c; /* Dark mode background */
+}

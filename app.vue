@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <NuxtPage />
+    <NuxtLayout class="z-10">
+      <NuxtPage class="z-10" />
+    </NuxtLayout>
   </div>
 </template>
 
