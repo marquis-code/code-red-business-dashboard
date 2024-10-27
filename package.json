@@ -19,18 +19,18 @@
     "tailwindcss": "^3.3.3"
   },
   "dependencies": {
-    "@nuxtjs/pwa": "^3.3.5",
-    "aos": "^3.0.0-beta.6",
-    "vue3-toastify": "^0.2.1",
     "@fawmi/vue-google-maps": "^0.9.79",
     "@googlemaps/google-maps-services-js": "^3.4.0",
     "@googlemaps/js-api-loader": "^1.16.8",
     "@googlemaps/places": "^1.6.0",
     "@heroicons/vue": "v1",
     "@nuxtjs/moment": "^1.6.1",
+    "@nuxtjs/pwa": "^3.3.5",
     "@nuxtjs/tailwindcss": "^6.12.1",
     "@vueuse/core": "^11.0.3",
     "@vueuse/head": "^2.0.0",
+    "aos": "^3.0.0-beta.6",
+    "apexcharts": "^3.54.1",
     "axios": "^1.7.7",
     "chart.js": "^4.4.4",
     "date-fns": "^4.1.0",
@@ -40,17 +40,19 @@
     "mapbox-gl": "^3.6.0",
     "mitt": "^3.0.1",
     "moment": "^2.30.1",
-    "sweetalert2": "^11.7.32",
     "naija-state-local-government": "^1.1.2",
     "npm": "^10.8.3",
     "sails.io.js": "^1.2.1",
     "socket.io": "^4.8.0",
     "socket.io-client": "^4.8.0",
+    "sweetalert2": "^11.7.32",
     "use-nigeria-location": "^1.0.0",
     "v-onboarding": "^2.8.2",
     "vue-google-maps-community-fork": "^0.3.1",
     "vue-shepherd": "^4.1.0",
+    "vue3-apexcharts": "^1.7.0",
     "vue3-google-map": "^0.21.0",
-    "vue3-signature": "^0.2.4"
+    "vue3-signature": "^0.2.4",
+    "vue3-toastify": "^0.2.1"
   }
 }
