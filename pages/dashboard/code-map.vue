@@ -18,7 +18,6 @@
    <script setup lang="ts">
    import { ref, onMounted } from 'vue';
    import { Loader } from "@googlemaps/js-api-loader";
-   import defaultMarkerImage from "@/assets/img/roomBg.png";
    import axios from 'axios';
  
    interface LocationInfo {

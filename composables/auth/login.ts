@@ -51,10 +51,11 @@ export const useLogin = () => {
         autoClose: 5000,
         dangerouslyHTMLString: true,
       });
-      useRouter().push(`/dashboard/${id.value}`);
+      useRouter().push(`/dashboard`);
+      // useRouter().push(`/dashboard/${id.value}`);
       return response.data;
     } catch (error) {
-      useRouter().push(`/dashboard-clinic`);
+      useRouter().push(`/dashboard`);
       useNuxtApp().$toast.error("Something went wrong!", {
         autoClose: 5000,
         dangerouslyHTMLString: true,

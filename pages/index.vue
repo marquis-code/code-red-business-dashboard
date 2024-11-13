@@ -84,6 +84,11 @@ const navigateToLogin = () => {
   const newQuery = { page: "login" };
   router.push({ query: newQuery });
 }
+onMounted(() => {
+    // navigateToLogin()
+    const newQuery = { page: "login" };
+    router.push({ query: newQuery });
+})
 
 
 if (isLoggedIn) {
