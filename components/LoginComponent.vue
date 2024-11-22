@@ -46,13 +46,13 @@
         </form>
       </div>
     </div>
-    <CoreLoadingSpinner :is-loading="loading" />
+    <FullScreenLoader :visible="loading" />
   </main>
 </template>
 
 <script setup lang="ts">
 import { useLogin } from '@/composables/auth/login'
-const { handleLogin, loginPayload, loading, isLoggedIn } = useLogin()
+const { handleLogin, loginPayload, loading} = useLogin()
 const emit = defineEmits<{
   (event: 'processLogin'): void,
   (event: 'forgotPassword', value: boolean): void
