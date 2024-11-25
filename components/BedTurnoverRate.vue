@@ -16,6 +16,8 @@
   </template>
   
   <script setup lang="ts">
+     import {  useFetchTurnOverRates } from '@/composables/dashboard/useFetchTurnOverRate'
+     const { loading, dataObj } =  useFetchTurnOverRates()
   import { ref } from 'vue';
   
   const chartOptions = ref({

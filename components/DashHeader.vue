@@ -82,7 +82,7 @@
             class="w-8 h-8 rounded-full"
           />
           <div class="text-gray-700">
-            <span class="font-semibold text-sm">Lagos Univ...</span>
+            <span class="font-semibold text-sm"> {{ user.hospitalName ?? 'Nil' }}</span>
             <span class="block text-sm">Admin</span>
           </div>
           <svg
@@ -105,6 +105,8 @@
   </template>
   
   <script setup lang="ts">
+  import { useUser } from '@/composables/auth/user';
+  const {  user } = useUser()
   // No specific functionality here yet, purely UI.
   </script>
   

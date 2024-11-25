@@ -238,7 +238,7 @@
                   </NuxtLink>
                 </li>
                 <li>
-                  <button @click="logOut" class="group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-[#737791]">
+                  <button type="button" @click="showLogoutModal = true" class="group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-[#737791]">
                       <svg class="h-6 w-6" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path fill-rule="evenodd" clip-rule="evenodd" d="M19.7741 20.2009L24.3365 14.8775C24.5544 14.629 24.6659 14.3152 24.666 13.9998C24.6661 13.784 24.6141 13.5674 24.5085 13.3704C24.4615 13.2826 24.4041 13.1992 24.3365 13.1221L19.7741 7.7987C19.2949 7.23957 18.4532 7.17478 17.8941 7.65398C17.3349 8.13317 17.2702 8.9749 17.7494 9.53403L20.4339 12.6664L10.1077 12.6664C9.37134 12.6664 8.77438 13.2633 8.77438 13.9997C8.77438 14.7361 9.37134 15.333 10.1077 15.333L20.4341 15.333L17.7494 18.4655C17.2702 19.0247 17.3349 19.8664 17.8941 20.3456C18.4532 20.8248 19.2949 20.76 19.7741 20.2009ZM11.3327 5.99967C12.0691 5.99967 12.666 6.59663 12.666 7.33301L12.666 9.33301C12.666 10.0694 13.263 10.6663 13.9993 10.6663C14.7357 10.6663 15.3327 10.0694 15.3327 9.33301L15.3327 7.33301C15.3327 5.12387 13.5418 3.33301 11.3327 3.33301L7.33268 3.33301C5.12354 3.33301 3.33268 5.12387 3.33268 7.33301L3.33268 20.6663C3.33268 22.8755 5.12354 24.6663 7.33268 24.6663L11.3327 24.6663C13.5418 24.6663 15.3327 22.8755 15.3327 20.6663L15.3327 18.6663C15.3327 17.93 14.7357 17.333 13.9993 17.333C13.263 17.333 12.666 17.93 12.666 18.6663L12.666 20.6663C12.666 21.4027 12.0691 21.9997 11.3327 21.9997L7.33268 21.9997C6.5963 21.9997 5.99935 21.4027 5.99935 20.6663L5.99935 7.33301C5.99935 6.59663 6.5963 5.99967 7.33268 5.99967L11.3327 5.99967Z" fill="#737791"/>
                           </svg>
@@ -259,7 +259,7 @@
                   <div class="relative z-10 text-white">
                     <div class="text-lg font-semibold">MAP AREA</div>
                     <p class="mt-2 text-sm">Find Areas they are surges!</p>
-                    <button
+                    <button @click="showMapModal = true"
                       class="mt-6 bg-white text-red-600 font-semibold py-2 px-4 rounded-lg hover:bg-gray-200 transition"
                     >
                       View Map
@@ -346,14 +346,34 @@
       </main>
     </div>
   </div>
+
+  <SurgeMap @close="closeMap" @open="openMap" :showMapModal="showMapModal" />
+
+  <LogoutModal :show="showLogoutModal"  @close="closeLogoutModal" />
   
 </template>
 
 <script  setup lang="ts">
 import { useLogin } from '@/composables/auth/login'
-const { logOut } = useLogin()
-import { dynamicIcons } from '@/utils/assets'
+// const { logOut } = useLogin()
+// import { dynamicIcons } from '@/utils/assets'
+import SurgeMap from "~/components/SurgeMap.vue";
 const openSidebar = ref(false)
+
+const showMapModal = ref(false)
+const showLogoutModal = ref(false)
+
+const closeLogoutModal = () => {
+  showLogoutModal.value = false
+}
+
+const openMap = () => {
+  showMapModal.value = true
+}
+
+const closeMap = () => {
+  showMapModal.value = false
+}
 
 const sidebarItems = ref([
   {

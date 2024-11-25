@@ -9,6 +9,7 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
+  ssr: false,
   plugins: ["~/plugins/aos.client.ts"],
   modules: ['@kevinmarrec/nuxt-pwa'],
   pwa: {
