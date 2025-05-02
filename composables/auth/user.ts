@@ -66,10 +66,10 @@ export const useUser = () => {
     localStorageData.token.value = token;
   };
   const createUser = (user: any) => {
-    runtimeData.user.value = user?.corporate;
-    localStorageData.user.value = user?.corporate;
-    localStorageData.token.value = user?.token?.access_token;
-    runtimeData.token.value = user?.token?.access_token;
+    runtimeData.user.value = user?.hospital;
+    localStorageData.user.value = user?.hospital;
+    localStorageData.token.value = user?.access_token;
+    runtimeData.token.value = user?.access_token;
   };
 
   const updateUser = (user: any) => {

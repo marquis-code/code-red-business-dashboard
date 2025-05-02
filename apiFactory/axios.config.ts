@@ -1,9 +1,9 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { useCustomToast } from '@/composables/core/useCustomToast'
 const { showToast } = useCustomToast();
 
 export const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL+'/api/v1'
+  baseURL: import.meta.env.VITE_BASE_URL
 });
 
 export interface CustomAxiosResponse extends AxiosResponse {

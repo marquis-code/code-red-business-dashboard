@@ -14,8 +14,12 @@ export const useLogin = () => {
   const loading = ref(false);
   const handleLogin = async () => {
     loading.value = true;
+    const payloadObj = {
+      usernameOrEmail: loginPayload.value.username,
+      password: loginPayload.value.password
+    }
 
-    const response = await authApiFactory.login(loginPayload.value) as any
+    const response = await authApiFactory.login(payloadObj) as any
     console.log(response.data)
     if(response.type !== 'ERROR'){
       createUser(response.data)
