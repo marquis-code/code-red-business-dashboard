@@ -228,6 +228,7 @@
         <p>Hospital ID: {{ currentHospitalId || 'None' }}</p>
         <p>Last Activity: {{ lastActivity ? new Date(lastActivity).toLocaleTimeString() : 'None' }}</p>
         <p>Updates Received: {{ updateCount }}</p>
+        <p>Active Modules: {{ activeModules.join(', ') || 'None' }}</p>
         <div class="mt-2">
           <button 
             @click="reconnect" 
@@ -245,7 +246,7 @@
 import { ref, computed, onMounted, onUnmounted, watch, reactive } from 'vue'
 import { useUpdateBedAvailability } from "@/composables/modules/bedspace/useBedAvailability"
 import { useBedspaces } from "@/composables/modules/bedspace/useFetchBedspaces"
-import { useBedSpaceSocket } from "@/composables/useBedSpaceSocket"
+import { useUnifiedSocket } from "@/composables/useUnifiedSocket" // Updated import
 import { 
   BedIcon, 
   CheckCircleIcon, 
@@ -265,20 +266,19 @@ import { definePageMeta } from '#imports'
 const { bedspaces, loading, fetchBedspaces } = useBedspaces()
 const { updateAvailability, loading: updateLoading } = useUpdateBedAvailability()
 
-// Initialize WebSocket connection
+// Initialize Unified WebSocket connection
 const { 
   initSocket, 
-  joinHospitalRoom, 
-  leaveHospitalRoom, 
   isConnected, 
   lastError,
   lastActivity,
-  onBedSpaceUpdated, 
-  onInitialBedspaceData,
-  onHospitalStatusChanged,
-  getHospitalIdFromLocalStorage,
+  activeModules,
+  subscribeToChannel,
+  onGeneralEvent,
+  sendGeneralMessage,
+  subscribedHospitals,
   debugMode
-} = useBedSpaceSocket()
+} = useUnifiedSocket() // Using the unified socket
 
 definePageMeta({
   layout: 'admin-dashboard'
@@ -316,7 +316,7 @@ interface BedSpace {
 // State
 const notification = ref<Notification>({
   show: false,
-  type: 'success',
+  type: 'success' | 'warning',
   title: '',
   message: ''
 })
@@ -347,7 +347,7 @@ const previousStats = reactive({
 // Computed properties
 const totalBeds = computed(() => {
   if (!bedspaces.value || bedspaces.value.length === 0) return 0
-  const total = bedspaces.value.reduce((sum, unit) => sum + unit.totalBeds, 0)
+  const total = bedspaces?.value?.reduce((sum, unit) => sum + unit.totalBeds, 0)
   
   // Check if value changed and trigger visual feedback
   if (previousStats.totalBeds !== total) {
@@ -360,7 +360,7 @@ const totalBeds = computed(() => {
 
 const totalAvailable = computed(() => {
   if (!bedspaces.value || bedspaces.value.length === 0) return 0
-  const available = bedspaces.value.reduce((sum, unit) => sum + unit.availableBeds, 0)
+  const available = bedspaces?.value?.reduce((sum, unit) => sum + unit.availableBeds, 0)
   
   // Check if value changed and trigger visual feedback
   if (previousStats.totalAvailable !== available) {
@@ -414,6 +414,13 @@ const incrementBed = async (unit: BedSpace) => {
       
       await updateAvailability(unit._id, "admit")
       
+      // Send real-time update via unified socket
+      await sendGeneralMessage("updateBedSpace", {
+        unitId: unit._id,
+        availableBeds: unit.availableBeds + 1,
+        hospitalId: currentHospitalId.value
+      })
+      
       showNotification(
         'success', 
         'Bed Added', 
@@ -439,6 +446,13 @@ const decrementBed = async (unit: BedSpace) => {
       actionType.value = 'discharge'
       
       await updateAvailability(unit._id, "discharge")
+      
+      // Send real-time update via unified socket
+      await sendGeneralMessage("updateBedSpace", {
+        unitId: unit._id,
+        availableBeds: unit.availableBeds - 1,
+        hospitalId: currentHospitalId.value
+      })
       
       showNotification(
         'success', 
@@ -506,47 +520,87 @@ const highlightStat = (stat: 'totalBeds' | 'availableBeds' | 'occupancyRate') =>
   }, 3000)
 }
 
+// Get hospital ID from local storage
+const getHospitalIdFromLocalStorage = (): string | null => {
+  try {
+    const userDataStr = localStorage.getItem('user')
+    if (userDataStr) {
+      const userData = JSON.parse(userDataStr)
+      return userData.id || null
+    }
+    return null
+  } catch (error) {
+    console.error('Error getting hospital ID from local storage:', error)
+    return null
+  }
+}
+
 // Handle real-time bedspace updates
 const handleBedspaceUpdate = (data: any) => {
   console.log('Received bedspace update:', data)
   updateCount.value++
   
-  if (!data || !data.bedspace) return
+  // Extract bedspace data from the unified event format
+  let bedspaceData = null
+  
+  if (data.data && data.data.bedspace) {
+    bedspaceData = data.data.bedspace
+  } else if (data.data && data.data.unitId) {
+    // Handle direct updateBedSpace response
+    const unitId = data.data.unitId
+    const availableBeds = data.data.availableBeds
+    
+    // Find and update the bedspace in our local state
+    const index = bedspaces.value.findIndex(unit => unit._id === unitId)
+    
+    if (index !== -1) {
+      bedspaceData = {
+        ...bedspaces.value[index],
+        _id: unitId,
+        availableBeds: availableBeds,
+        lastUpdated: new Date().toISOString()
+      }
+    }
+  } else if (data.eventType === 'bedspace_updated' || data.eventType === 'bedSpaceUpdated') {
+    bedspaceData = data.data
+  }
+  
+  if (!bedspaceData) return
   
   // Find and update the bedspace in our local state
-  const index = bedspaces.value.findIndex(unit => unit._id === data.bedspace._id)
+  const index = bedspaces.value.findIndex(unit => unit._id === bedspaceData._id)
   
   if (index !== -1) {
     // Update the existing bedspace
     bedspaces.value[index] = {
       ...bedspaces.value[index],
-      ...data.bedspace,
+      ...bedspaceData,
       lastUpdated: data.timestamp || new Date().toISOString()
     }
     
     // Mark as recently updated for visual feedback
-    recentlyUpdated.value.push(data.bedspace._id)
+    recentlyUpdated.value.push(bedspaceData._id)
     setTimeout(() => {
-      recentlyUpdated.value = recentlyUpdated.value.filter(id => id !== data.bedspace._id)
+      recentlyUpdated.value = recentlyUpdated.value.filter(id => id !== bedspaceData._id)
     }, 3000)
     
     // Show notification
     showNotification(
       'success',
       'Real-time Update',
-      `${data.bedspace.departmentName} bed availability updated to ${data.bedspace.availableBeds}`
+      `${bedspaces.value[index].departmentName} bed availability updated to ${bedspaceData.availableBeds}`
     )
-  } else if (data.bedspace.hospital === currentHospitalId.value) {
+  } else if (bedspaceData.hospital === currentHospitalId.value) {
     // If it's a new bedspace for our hospital, add it
     bedspaces.value.push({
-      ...data.bedspace,
+      ...bedspaceData,
       lastUpdated: data.timestamp || new Date().toISOString()
     })
     
     // Mark as recently updated
-    recentlyUpdated.value.push(data.bedspace._id)
+    recentlyUpdated.value.push(bedspaceData._id)
     setTimeout(() => {
-      recentlyUpdated.value = recentlyUpdated.value.filter(id => id !== data.bedspace._id)
+      recentlyUpdated.value = recentlyUpdated.value.filter(id => id !== bedspaceData._id)
     }, 3000)
   }
 }
@@ -555,9 +609,17 @@ const handleBedspaceUpdate = (data: any) => {
 const handleInitialData = (data: any) => {
   console.log('Received initial bedspace data:', data)
   
-  if (data && Array.isArray(data.bedspaces)) {
+  let bedspacesData = null
+  
+  if (data.data && Array.isArray(data.data.bedspaces)) {
+    bedspacesData = data.data.bedspaces
+  } else if (data.eventType === 'initial_bedspace_data' && data.data) {
+    bedspacesData = Array.isArray(data.data) ? data.data : data.data.bedspaces
+  }
+  
+  if (bedspacesData) {
     // Replace our local state with the server data
-    bedspaces.value = data.bedspaces.map((bedspace: any) => ({
+    bedspaces.value = bedspacesData.map((bedspace: any) => ({
       ...bedspace,
       lastUpdated: bedspace.updatedAt || new Date().toISOString()
     }))
@@ -568,11 +630,15 @@ const handleInitialData = (data: any) => {
 const handleHospitalStatusChange = (data: any) => {
   console.log('Hospital status changed:', data)
   
-  showNotification(
-    'warning',
-    'Hospital Status Changed',
-    `Hospital status changed to: ${data.status}`
-  )
+  if (data.eventType === 'hospital_status_changed' || data.data && data.data.status) {
+    const status = data.data ? data.data.status : data.status
+    
+    showNotification(
+      'warning',
+      'Hospital Status Changed',
+      `Hospital status changed to: ${status}`
+    )
+  }
 }
 
 // Connect to WebSocket and join hospital room
@@ -616,15 +682,19 @@ const connectAndJoinRoom = async () => {
       })
     }
     
-    // Join hospital room
-    await joinHospitalRoom(hospitalId)
+    // Subscribe to hospital-specific channel for bedspace updates
+    await subscribeToChannel(`hospital:${hospitalId}:bedspace`)
     
-    console.log(`Successfully joined hospital room for ${hospitalId}`)
+    console.log(`Successfully subscribed to bedspace channel for ${hospitalId}`)
     
     // Force fetch initial data if needed
     if (bedspaces.value.length === 0) {
       await fetchBedspaces()
     }
+    
+    // Request initial bedspace data via socket
+    await sendGeneralMessage("get_initial_bedspace_data", { hospitalId })
+    
   } catch (error) {
     console.error('Error connecting to WebSocket:', error)
     showNotification(
@@ -662,10 +732,24 @@ const reconnect = async () => {
 
 // Setup WebSocket connection and listeners
 onMounted(async () => {
-  // Set up event listeners
-  const bedspaceUpdateCleanup = onBedSpaceUpdated(handleBedspaceUpdate)
-  const initialDataCleanup = onInitialBedspaceData(handleInitialData)
-  const statusChangeCleanup = onHospitalStatusChanged(handleHospitalStatusChange)
+  // Set up event listeners for general events
+  const eventCleanup = onGeneralEvent((eventData) => {
+    const eventType = eventData.eventType
+    
+    // Route events to appropriate handlers
+    if (eventType === 'bedspace_updated' || 
+        eventType === 'bedSpaceUpdated' || 
+        eventType === 'hospital_bedspace_updated') {
+      handleBedspaceUpdate(eventData)
+    } 
+    else if (eventType === 'initial_bedspace_data' || 
+             eventType === 'initialBedspaceData') {
+      handleInitialData(eventData)
+    }
+    else if (eventType === 'hospital_status_changed') {
+      handleHospitalStatusChange(eventData)
+    }
+  })
   
   // Connect and join hospital room
   await connectAndJoinRoom()
@@ -677,14 +761,8 @@ onMounted(async () => {
   
   // Cleanup function
   onUnmounted(() => {
-    if (currentHospitalId.value) {
-      leaveHospitalRoom(currentHospitalId.value)
-    }
-    
     // Clean up event listeners
-    if (bedspaceUpdateCleanup) bedspaceUpdateCleanup()
-    if (initialDataCleanup) initialDataCleanup()
-    if (statusChangeCleanup) statusChangeCleanup()
+    if (eventCleanup) eventCleanup()
   })
 })
 </script>

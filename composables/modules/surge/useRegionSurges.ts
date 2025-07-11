@@ -22,6 +22,7 @@ export const useRegionSurges = () => {
           radius,
           status
         );
+        console.log(response.data, 'herllp')
         surges.value = response.data;
         return response.data;
       } catch (err: any) {

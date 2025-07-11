@@ -29,7 +29,7 @@ export const useBedSpaceSocket = () => {
   }
   
   // Initialize socket connection
-  const initSocket = (url = import.meta.env.VITE_BASE_URL) => {
+  const initSocket = (url = 'http://localhost:3000') => {
     logDebug(`Initializing socket connection to ${url}`)
     
     socket.value = io(url, {

@@ -38,7 +38,7 @@ export const surgeApiFactory = {
     } = {
       lat: latitude,
       lng: longitude,
-      radius: radius,
+      radius: radius || 10,
     };
     
     if (status && status.length > 0) {

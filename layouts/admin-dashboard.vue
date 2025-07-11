@@ -152,7 +152,7 @@
                       <!-- Card Content -->
                       <div class="relative z-10 text-white">
                         <div class="text-lg font-semibold">MAP AREA</div>
-                        <p class="mt-2 text-sm">Find Areas they are surges!</p>
+                        <p class="mt-2 text-sm">Find Areas there are surges!</p>
                         <button
                           class="mt-6 bg-white text-red-600 font-semibold py-2 px-4 rounded-lg hover:bg-gray-200 transition"
                         >
@@ -278,7 +278,7 @@
                   <!-- Card Content -->
                   <div class="relative z-10 text-white">
                     <div class="text-lg font-semibold">MAP AREA</div>
-                    <p class="mt-2 text-sm">Find Areas they are surges!</p>
+                    <p class="mt-2 text-sm">Find Areas there are surges!</p>
                     <button @click="showMapModal = true"
                       class="mt-6 bg-white text-red-600 font-semibold py-2 px-4 rounded-lg hover:bg-gray-200 transition"
                     >
@@ -367,18 +367,20 @@
     </div>
   </div>
 
-  <SurgeMap @close="closeMap" @open="openMap" :showMapModal="showMapModal" />
+  <SurgeMap :hospital-id="user.id" @close="closeMap" @open="openMap" :showMapModal="showMapModal" />
 
   <LogoutModal :show="showLogoutModal"  @close="closeLogoutModal" />
   
 </template>
-
+<!-- http://localhost:3000 -->
 <script  setup lang="ts">
 import { useLogin } from '@/composables/auth/login'
 // const { logOut } = useLogin()
 // import { dynamicIcons } from '@/utils/assets'
+import { useUser } from "@/composables/auth/user"
 import SurgeMap from "~/components/SurgeMap.vue";
 const openSidebar = ref(false)
+const { user } = useUser()
 
 const showMapModal = ref(false)
 const showLogoutModal = ref(false)
