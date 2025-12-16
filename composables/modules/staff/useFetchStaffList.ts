@@ -24,6 +24,7 @@ export const useFetchStaffList = () => {
       
       try {
         const response = await staffApiFactory.findAll(hospitalId, department, availability);
+        console.log(response, 'list ooo')
         staffList.value = response.data;
         return response.data;
       } catch (err: any) {
